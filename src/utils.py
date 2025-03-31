@@ -218,15 +218,33 @@ def replace_uuid_with_tables(replacement: str, tables_info: list):
     return replacement
 
 
-def extract_html_tables(html_content: str) -> Optional[List[pd.DataFrame]]:
-    """Извлекает таблицы из HTML части письма"""
-    if html_content:
-        try:
-            tables: List[pd.DataFrame] = pd.read_html(StringIO(html_content))
-            return tables
-        except Exception as e:
-            print(f"Ошибка при извлечении таблиц из HTML: {str(e)}")
-    return None
+def html_table_to_df(html_table: str) -> pd.DataFrame:
+    """ Замена стандартной pd.read_html. Разделяет построчно параграфы (в тегах <p>) """
+
+    soup = BeautifulSoup(html_table, 'html.parser')
+    table = soup.find('table')
+
+    rows = []
+    for tr in table.find_all('tr'):
+        cells = []
+        for td in tr.find_all('td'):
+            # Извлекаем текст из всех тегов <p>
+            paragraphs = [p.get_text() for p in td.find_all('p')]
+            # Если найдено более одного абзаца, объединяем с переносами строк
+            if len(paragraphs) > 1:
+                cell_text = "\n".join(paragraphs)
+            elif paragraphs:
+                cell_text = paragraphs[0]
+            else:
+                cell_text = td.get_text(strip=True)
+            cells.append(cell_text)
+        rows.append(cells)
+
+    # raw[0] -> Header
+    df = pd.DataFrame(rows)
+    df.columns = df.iloc[0]
+    df = df.drop(df.index[0])
+    return df
 
 
 def extract_outer_html_tables(html_content: str) -> Optional[List[pd.DataFrame]]:
@@ -236,7 +254,7 @@ def extract_outer_html_tables(html_content: str) -> Optional[List[pd.DataFrame]]
 
     try:
         soup = BeautifulSoup(html_content, "html.parser")
-        top_level_tables = []
+        top_level_tables: list[str] = []
 
         # Смотрим только таблицы, у которых нет родительской <table>
         for table in soup.find_all("table"):
@@ -244,7 +262,7 @@ def extract_outer_html_tables(html_content: str) -> Optional[List[pd.DataFrame]]
                 top_level_tables.append(str(table))  # Преобразуем обратно в HTML
 
         # Преобразуем верхнеуровневые таблицы в DataFrame
-        tables = [pd.read_html(StringIO(table), header=0)[0] for table in top_level_tables]
+        tables = [html_table_to_df(table) for table in top_level_tables]
         return tables if tables else None
 
     except Exception as e:
@@ -278,14 +296,18 @@ def dataframe_is_table_rates(df: pd.DataFrame) -> bool:
         return False
 
     df_columns_lower: set = {str(col).strip().lower() for col in df.columns}
-    return df_columns_lower == required_columns
+    if df_columns_lower == required_columns:
+        df.columns = [c.lower().strip() for c in df.columns]
+        return True
+    else:
+        return False
 
 
 def postprocess_df(df) -> pd.DataFrame | None:
     try:
-        df['Ставка'] = df['Ставка'].apply(extract_first_number)
-        df['ВХОД'] = df['ВХОД'].apply(extract_first_number)
-        df['Наименование'] = df['Наименование'].apply(lambda x: service_replace_by_service1C(x, SERVICES_KEYWORDS))
+        df['ставка'] = df['ставка'].apply(extract_first_number)
+        df['вход'] = df['вход'].apply(extract_first_number)
+        df['наименование'] = df['наименование'].apply(lambda x: service_replace_by_service1C(x, SERVICES_KEYWORDS))
         return df
 
     except Exception:

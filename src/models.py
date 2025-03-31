@@ -41,7 +41,7 @@ class EmailData:
         self.parts = split_html(self.replacement)
         if self.parts:
             last_message_with_ids = self.parts[0]
-            last_message = replace_uuid_with_tables(last_message_with_ids, self.tables_info)
+            last_message: str = replace_uuid_with_tables(last_message_with_ids, self.tables_info)
             last_message_outer_tables: list[pd.DataFrame] = extract_outer_html_tables(last_message)
             self.raw_rate_tables = [df for df in last_message_outer_tables if dataframe_is_table_rates(df)]
             self.rate_tables = [postprocess_df(df) for df in self.raw_rate_tables]
