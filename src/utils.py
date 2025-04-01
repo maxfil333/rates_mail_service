@@ -5,7 +5,6 @@ import smtplib
 import chardet
 import pandas as pd
 from uuid import uuid4
-from io import StringIO
 from typing import Literal
 from bs4 import BeautifulSoup
 from typing import List, Optional, Tuple, Union
@@ -15,7 +14,7 @@ from email.message import Message
 from email.header import decode_header
 from email.mime.text import MIMEText
 
-from src.config import SERVICES_KEYWORDS
+from src.parameters import SERVICES_KEYWORDS
 
 
 # ---------------------------------------------------------------------------------------------------------------- email

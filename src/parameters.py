@@ -1,28 +1,3 @@
-import os
-import sys
-import msvcrt
-
-
-if getattr(sys, 'frozen', False):  # в сборке
-    BASE_DIR = os.path.dirname(sys.executable)
-else:
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-try:
-    with open(os.path.join(BASE_DIR, 'config_files', "crypto.key"), 'r') as f:
-        CRYPTO_KEY = f.read()
-except FileNotFoundError as e:
-    print(e)
-    print('Не найден crypto.key')
-    if getattr(sys, 'frozen', False):
-        msvcrt.getch()
-        sys.exit()
-
-CRYPTO_ENV = os.path.join(BASE_DIR, 'config_files', "encrypted.env")
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-
 SERVICES1C = [
     "Фрахт",
     "Транспортно-Экспедиторское обслуживание",

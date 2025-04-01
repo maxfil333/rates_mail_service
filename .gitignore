@@ -18,6 +18,8 @@ env/
 .venv/
 *.env
 
+*.key
+
 # Игнорировать файлы, скомпилированные Python
 *.pyc
 *.pyo
@@ -57,3 +59,4 @@ docker-compose.override.yml
 
 # Исключения
 !.gitignore
+!__init__.py
