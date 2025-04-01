@@ -97,8 +97,12 @@ if __name__ == "__main__":
     IMAP_SERVER: str = "imap.gmail.com"
 
     while True:
-        result = main(email_user=config.EMAIL_ADDRESS,
-                      email_pass=config.EMAIL_PASSWORD,
-                      imap_server=IMAP_SERVER)
-        print(result)
-        time.sleep(30)
+        try:
+            result = main(email_user=config.EMAIL_ADDRESS,
+                          email_pass=config.EMAIL_PASSWORD,
+                          imap_server=IMAP_SERVER)
+            print(result)
+            time.sleep(10)
+        except Exception:
+            print(traceback.format_exc())
+            time.sleep(5)
