@@ -1,11 +1,11 @@
-import os
+import time
 import email
 import imaplib
 import traceback
 from typing import Optional
 from email.message import Message
-from dotenv import load_dotenv
 
+import config
 from src.models import EmailData
 from src.utils import (connect_to_imap, get_unseen_messages, decode_subject, extract_text_content, extract_html_content,
                        send_email, format_csv_to_table)
@@ -64,10 +64,10 @@ def main(email_user: str, email_pass: str, imap_server: str, imap_port: int = 99
             result.append(email_data)
 
             # Запись csv
-            email_data.rate_tables_to_csv('CSVs')
+            # email_data.rate_tables_to_csv(path='CSVs')
 
             # Отметить как прочитанное
-            # mail.store(msg_id, '+FLAGS', '\\Seen')
+            mail.store(msg_id.decode('utf-8'), '+FLAGS', '\\Seen')
 
             # Отправка ответного письма
             if html_content:
@@ -94,19 +94,11 @@ def main(email_user: str, email_pass: str, imap_server: str, imap_port: int = 99
 
 if __name__ == "__main__":
 
-    # Конфигурация
-    load_dotenv()
-    EMAIL_ADDRESS: str = os.getenv('EMAIL_ADDRESS')
-    EMAIL_PASSWORD: str = os.getenv('EMAIL_PASSWORD')
     IMAP_SERVER: str = "imap.gmail.com"
 
-    result = main(EMAIL_ADDRESS, EMAIL_PASSWORD, IMAP_SERVER)
-    print(result)
-    i = 0
-    # print(result[i].subject)
-    # print(result[i].sender)
-    # print(result[i].sender_address)
-    # print(result[i].date)
-    # print(result[i].raw_rate_tables)
-    print(result[i].rate_tables_csv)
-
+    while True:
+        result = main(email_user=config.EMAIL_ADDRESS,
+                      email_pass=config.EMAIL_PASSWORD,
+                      imap_server=IMAP_SERVER)
+        print(result)
+        time.sleep(30)
