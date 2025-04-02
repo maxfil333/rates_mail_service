@@ -14,7 +14,7 @@ from email.message import Message
 from email.header import decode_header
 from email.mime.text import MIMEText
 
-from src.parameters import SERVICES_KEYWORDS
+from src.parameters import SERVICES_KEYWORDS, FIELDS_ALIAS, FIELDS_ALIAS_REVERSED
 
 
 # ---------------------------------------------------------------------------------------------------------------- email
@@ -287,23 +287,32 @@ def dataframe_is_table_rates(df: pd.DataFrame) -> bool:
     """
     Проверяет, является ли DataFrame валидным по следующим критериям:
     1) Состоит из 3 столбцов
-    2) Имена столбцов: "Наименование", "Ставка", "Вход"
+    2) Имена столбцов == FIELDS_ALIAS
     """
-    required_columns: set = {"наименование", "ставка", "вход"}  # Приводим к нижнему регистру для проверки
 
     if df.shape[1] != 3:
         return False
 
-    df_columns_lower: set = {str(col).strip().lower() for col in df.columns}
-    if df_columns_lower == required_columns:
-        df.columns = [c.lower().strip() for c in df.columns]
-        return True
-    else:
-        return False
+    return compare_fields_names(fields_alias=FIELDS_ALIAS,
+                                extracted_fields=list(df.columns))
+
+
+def compare_fields_names(fields_alias: dict, extracted_fields: list) -> bool:
+    extracted_fields = [x.lower().strip() for x in extracted_fields]
+    for field_name, aliases in fields_alias.items():
+        for alias in aliases:
+            alias = alias.lower().strip()
+            if alias in extracted_fields:
+                extracted_fields.remove(alias)
+                break
+    return len(extracted_fields) == 0
 
 
 def postprocess_df(df) -> pd.DataFrame | None:
     try:
+        df.columns = [c.lower().strip() for c in df.columns]
+        df.columns = [FIELDS_ALIAS_REVERSED[x] for x in df.columns]  # приводим алиасы полей к изначальным наименованиям
+
         df['ставка'] = df['ставка'].apply(extract_first_number)
         df['вход'] = df['вход'].apply(extract_first_number)
         df['наименование'] = df['наименование'].apply(lambda x: service_replace_by_service1C(x, SERVICES_KEYWORDS))
@@ -348,4 +357,6 @@ def format_csv_to_table(csv_text):
 
 
 if __name__ == "__main__":
-    pass
+    # print(compare_fields_names(FIELDS_ALIAS, ['Услуги', 'ВХОД', 'ставка']))
+    print(compare_fields_names(FIELDS_ALIAS, ['Наименование', 'ВХоД', 'ставка', '1']))
+    print(compare_fields_names(FIELDS_ALIAS, ['Услуги', 'ВХОД', 'ставка']))
