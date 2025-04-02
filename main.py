@@ -19,6 +19,7 @@ def main(email_user: str, email_pass: str, imap_server: str, imap_port: int = 99
     # Подключение к серверу
     mail: imaplib.IMAP4_SSL = connect_to_imap(email_user, email_pass, imap_server, imap_port)
     if not mail:
+        print('Нет соединения')
         return result
 
     try:
@@ -97,12 +98,8 @@ if __name__ == "__main__":
     IMAP_SERVER: str = "imap.gmail.com"
 
     while True:
-        try:
-            result = main(email_user=config.EMAIL_ADDRESS,
-                          email_pass=config.EMAIL_PASSWORD,
-                          imap_server=IMAP_SERVER)
-            print(result)
-            time.sleep(10)
-        except Exception:
-            print(traceback.format_exc())
-            time.sleep(5)
+        result = main(email_user=config.EMAIL_ADDRESS,
+                      email_pass=config.EMAIL_PASSWORD,
+                      imap_server=IMAP_SERVER)
+        print(result)
+        time.sleep(5)
