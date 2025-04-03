@@ -246,10 +246,12 @@ def html_table_to_df(html_table: str) -> pd.DataFrame:
     return df
 
 
-def extract_outer_html_tables(html_content: str) -> Optional[List[pd.DataFrame]]:
+def extract_outer_html_tables(html_content: str) -> List[pd.DataFrame]:
     """Извлекает только верхнеуровневые таблицы из HTML"""
+
     if not html_content:
-        return None
+        print('No html_content in extract_outer_html_tables')
+        return []
 
     try:
         soup = BeautifulSoup(html_content, "html.parser")
@@ -261,12 +263,11 @@ def extract_outer_html_tables(html_content: str) -> Optional[List[pd.DataFrame]]
                 top_level_tables.append(str(table))  # Преобразуем обратно в HTML
 
         # Преобразуем верхнеуровневые таблицы в DataFrame
-        tables = [html_table_to_df(table) for table in top_level_tables]
-        return tables if tables else None
+        return [html_table_to_df(table) for table in top_level_tables]
 
     except Exception as e:
         print(f"Ошибка при извлечении таблиц из HTML: {str(e)}")
-        return None
+        return []
 
 
 # ------------------------------------------------------------------------------------------------------- postprocessing
