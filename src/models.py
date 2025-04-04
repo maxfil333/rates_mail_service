@@ -50,7 +50,7 @@ class EmailData:
 
             self.rate_tables_csv = [df.to_csv(index=False) for df in self.rate_tables]
 
-    def rate_tables_to_csv(self, path):
+    def rate_tables_to_csv(self, folder, filename='result'):
         if not hasattr(self, 'rate_tables_csv'):
             print('Rate tables processing has not been performed yet.')
             return 0
@@ -58,9 +58,9 @@ class EmailData:
             print('No rate tables were extracted to CSV.')
             return 0
         else:
-            os.makedirs(path, exist_ok=True)
+            os.makedirs(folder, exist_ok=True)
             for i, csv in enumerate(self.rate_tables_csv):
-                file_path = os.path.join(path, f'result{i}.csv')
+                file_path = os.path.join(folder, f'{filename}_{i}.csv')
                 try:
                     with open(file_path, 'w', encoding="utf-8") as f:
                         f.write(csv)
