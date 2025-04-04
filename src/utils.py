@@ -315,7 +315,7 @@ def postprocess_df(df) -> pd.DataFrame | None:
         df.columns = [FIELDS_ALIAS_REVERSED[x] for x in df.columns]  # приводим алиасы полей к изначальным наименованиям
 
         df['ставка'] = df['ставка'].apply(extract_first_number)
-        df['вход'] = df['вход'].apply(extract_first_number)
+        df['вход'] = df['вход'].apply(extract_number_from_entry)
         df['наименование'] = df['наименование'].apply(lambda x: service_replace_by_service1C(x, SERVICES_KEYWORDS))
         return df
 
@@ -329,6 +329,17 @@ def extract_first_number(text: str) -> float | None:
     matches = re.findall(regex, text, flags=re.MULTILINE)
     if matches:
         return float(matches[0])
+
+
+def cut_text_before_last_equal(text: str) -> str:
+    last_equal = list(re.finditer(r'=', text))[-1]
+    return text[last_equal.start():]
+
+
+def extract_number_from_entry(text: str) -> float | None:
+    if '=' in text:
+        text = cut_text_before_last_equal(text)
+    return extract_first_number(text)
 
 
 def service_replace_by_service1C(service: str, keyword_dict: dict) -> str:
