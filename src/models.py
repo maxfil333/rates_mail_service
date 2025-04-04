@@ -10,27 +10,25 @@ from src.utils import (find_tables_positions, replace_tables_with_uuid, replace_
 class EmailData:
     def __init__(self):
         self.text = None
-        self._html = None
+        self.html = None
         self._soup = None
         self.subject = None
         self._sender = None
         self.sender_address = None
         self.date = None
 
-    def __rate_tables_processor(self):
+        self.tables_info = []
+        self.replacement = ""
+        self.restored = ""
+        self.parts = []
+        self.raw_rate_tables = []
+        self.rate_tables = []
+        self.rate_tables_csv = []
+
+    def rate_tables_processor(self) -> None:
         """ Вычисление таблиц ставок """
 
-        if not self._html:
-            self.tables_info = []
-            self.replacement = ""
-            self.restored = ""
-            self.parts = []
-            self.raw_rate_tables = []
-            self.rate_tables = []
-            self.rate_tables_csv = []
-            return
-
-        self._soup = BeautifulSoup(self._html, 'html.parser')
+        self._soup = BeautifulSoup(self.html, 'html.parser')
         tables_info = find_tables_positions(self._soup)
         tables_info, replacement = replace_tables_with_uuid(self._soup, tables_info)
 
@@ -68,17 +66,6 @@ class EmailData:
                         f.write(csv)
                 except IOError as e:
                     print(f'Error writing file {file_path}: {e}')
-
-    @property
-    def html(self):
-        """Геттер для получения значения"""
-        return self._html
-
-    @html.setter
-    def html(self, value):
-        """Сеттер для установки значения и авто-вычисления таблиц"""
-        self._html = value
-        self.__rate_tables_processor()
 
     @property
     def sender(self):
