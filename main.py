@@ -62,13 +62,13 @@ def main(email_user: str, email_pass: str, imap_server: str, imap_port: int = 99
             if html_content:
                 email_data.html = html_content
 
-                # Извлечение таблиц ставок
+                # Вычисление таблиц ставок
                 email_data.rate_tables_processor()
 
             result.append(email_data)
 
             # Запись csv
-            email_data.rate_tables_to_csv(folder='CSVs')
+            email_data.rate_tables_export(extension='csv', folder='CSVs')
 
             # Отметить как прочитанное
             mail.store(msg_id.decode('utf-8'), '+FLAGS', '\\Seen')

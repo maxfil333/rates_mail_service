@@ -1,8 +1,9 @@
 import os
 import pandas as pd
 from bs4 import BeautifulSoup
-
+from typing import Literal
 from email.utils import parseaddr
+
 from src.utils import (find_tables_positions, replace_tables_with_uuid, replace_uuid_with_tables,
                        split_html, extract_outer_html_tables, dataframe_is_table_rates, postprocess_df)
 
@@ -24,6 +25,7 @@ class EmailData:
         self.raw_rate_tables = []
         self.rate_tables = []
         self.rate_tables_csv = []
+        self.rate_tables_xml = []
 
     def rate_tables_processor(self) -> None:
         """ Вычисление таблиц ставок """
@@ -48,24 +50,41 @@ class EmailData:
             if any([x is None for x in self.rate_tables]):
                 self.rate_tables = []
 
-            self.rate_tables_csv = [df.to_csv(index=False) for df in self.rate_tables]
-
-    def rate_tables_to_csv(self, folder, filename='result'):
+    def rate_tables_export(self, extension: Literal['csv', 'xml'], folder, filename='result'):
         if not hasattr(self, 'rate_tables_csv'):
             print('Rate tables processing has not been performed yet.')
             return 0
-        elif not self.rate_tables_csv:
-            print('No rate tables were extracted to CSV.')
+        elif not self.rate_tables:
+            print('No rate tables were extracted.')
             return 0
         else:
             os.makedirs(folder, exist_ok=True)
-            for i, csv in enumerate(self.rate_tables_csv):
-                file_path = os.path.join(folder, f'{filename}_{i}.csv')
-                try:
-                    with open(file_path, 'w', encoding="utf-8") as f:
-                        f.write(csv)
-                except IOError as e:
-                    print(f'Error writing file {file_path}: {e}')
+
+            if extension.lower() == 'csv':
+                self.rate_tables_csv = [df.to_csv(index=False) for df in self.rate_tables]
+                if not self.rate_tables_csv:
+                    print('No rate tables were extracted to CSV.')
+                    return 0
+                for i, data in enumerate(self.rate_tables_csv):
+                    file_path = os.path.join(folder, f'{filename}_{i}.csv')
+                    try:
+                        with open(file_path, 'w', encoding="utf-8") as f:
+                            f.write(data)
+                    except IOError as e:
+                        print(f'Error writing file {file_path}: {e}')
+
+            elif extension.lower() == 'xml':
+                self.rate_tables_xml = [df.to_xml(encoding='utf-8', index=False) for df in self.rate_tables]
+                if not self.rate_tables_xml:
+                    print('No rate tables were extracted to XML.')
+                    return 0
+                for i, data in enumerate(self.rate_tables_xml):
+                    file_path = os.path.join(folder, f'{filename}_{i}.xml')
+                    try:
+                        with open(file_path, 'w', encoding="utf-8") as f:
+                            f.write(data)
+                    except IOError as e:
+                        print(f'Error writing file {file_path}: {e}')
 
     @property
     def sender(self):

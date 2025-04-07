@@ -10,7 +10,7 @@ from src.utils import decode_subject
 
 
 def main(file_path: str) -> list[EmailData]:
-    """Обрабатывает указанный .msg файл и сохраняет результат в .csv"""
+    """ Обрабатывает указанный .msg файл и сохраняет результат в .csv/.xml """
 
     result = []
 
@@ -36,15 +36,17 @@ def main(file_path: str) -> list[EmailData]:
         html_content: Optional[str] = msg.htmlBody
         if html_content:
             email_data.html = html_content
-            # Извлечение таблиц ставок
+            # Вычисление таблиц ставок
             email_data.rate_tables_processor()
 
         result.append(email_data)
 
-        # Запись csv
-        email_data.rate_tables_to_csv(folder=os.path.dirname(os.path.abspath(file_path)),
-                                      filename=os.path.splitext(os.path.basename(file_path))[0],
-                                      )
+        # Запись csv / xml
+        email_data.rate_tables_export(
+            extension='xml',
+            folder=os.path.dirname(os.path.abspath(file_path)),
+            filename=os.path.splitext(os.path.basename(file_path))[0],
+        )
 
         return result
 
