@@ -7,6 +7,7 @@ from typing import Optional
 
 from src.models import EmailData
 from src.utils import decode_subject
+from src.logger import logger
 
 
 def main(file_path: str) -> list[EmailData]:
@@ -15,11 +16,11 @@ def main(file_path: str) -> list[EmailData]:
     result = []
 
     try:
-        # Чтение .msg файла с помощью extract-msg
+        logger.print("Чтение .msg файла с помощью extract-msg")
         msg = extract_msg.Message(file_path)
         email_data = EmailData()
 
-        # Извлечение основных данных
+        logger.print("Извлечение основных данных")
         subject: str = decode_subject(msg.subject)
         sender: str = msg.sender or "Неизвестный отправитель"
         date: str = msg.date or "Дата неизвестна"
@@ -27,31 +28,38 @@ def main(file_path: str) -> list[EmailData]:
         email_data.sender = sender
         email_data.date = date
 
-        # Извлечение текстовой части
+        logger.print("Извлечение текстовой части")
         text_content: Optional[str] = msg.body
         if text_content:
             email_data.text = text_content
 
-        # Извлечение html части
+        logger.print("Извлечение html части")
         html_content: Optional[str] = msg.htmlBody
         if html_content:
             email_data.html = html_content
-            # Вычисление таблиц ставок
+            logger.print("Вычисление таблиц ставок")
             email_data.rate_tables_processor()
 
         result.append(email_data)
 
-        # Запись csv / xml
+        logger.print("Запись csv / xml")
+        folder = os.path.dirname(os.path.abspath(file_path))
+        filename = os.path.splitext(os.path.basename(file_path))[0]
         email_data.rate_tables_export(
             extension='xml',
-            folder=os.path.dirname(os.path.abspath(file_path)),
-            filename=os.path.splitext(os.path.basename(file_path))[0],
+            folder=folder,
+            filename=filename,
         )
+
+        logger.print("Завершение работы программы.")
+
+        logfile = os.path.join(folder, f'{filename}.log')
+        logger.save(log_folder='', logfile_name=logfile)
 
         return result
 
     except Exception:
-        print(traceback.format_exc())
+        logger.print(traceback.format_exc())
         return []
 
 
