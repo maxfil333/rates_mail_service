@@ -317,6 +317,7 @@ def postprocess_df(df) -> pd.DataFrame | None:
         df['ставка'] = df['ставка'].apply(extract_first_number)
         df['вход'] = df['вход'].apply(extract_number_from_entry)
         df['наименование'] = df['наименование'].apply(lambda x: service_replace_by_service1C(x, SERVICES_KEYWORDS))
+        df = remove_false_name_rows(df)
         return df
 
     except Exception:
@@ -348,6 +349,11 @@ def service_replace_by_service1C(service: str, keyword_dict: dict) -> str:
         if key_word in service_lower:
             return name1C
     return ''
+
+
+def remove_false_name_rows(df):
+    """ Удаляет из DataFrame строки с пустым полем 'Наименование' """
+    return df[df['наименование'].apply(bool)]
 
 
 # ---------------------------------------------------------------------------------------------------------------- other
