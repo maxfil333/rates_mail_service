@@ -14,7 +14,7 @@ from email.message import Message
 from email.header import decode_header
 from email.mime.text import MIMEText
 
-from src.parameters import SERVICES_KEYWORDS, FIELDS_ALIAS, FIELDS_ALIAS_REVERSED
+from src.parameters import SERVICES_KEYWORDS, FIELDS_ALIAS, FIELDS_ALIAS_REVERSED, STOPWORDS
 
 
 # ---------------------------------------------------------------------------------------------------------------- email
@@ -314,6 +314,7 @@ def postprocess_df(df) -> pd.DataFrame | None:
         df.columns = [c.lower().strip() for c in df.columns]
         df.columns = [FIELDS_ALIAS_REVERSED[x] for x in df.columns]  # приводим алиасы полей к изначальным наименованиям
 
+        df = remove_stopwords(df)
         df['ставка'] = df['ставка'].apply(extract_first_number)
         df['вход'] = df['вход'].apply(extract_number_from_entry)
         df['наименование'] = df['наименование'].apply(lambda x: service_replace_by_service1C(x, SERVICES_KEYWORDS))
@@ -354,6 +355,16 @@ def service_replace_by_service1C(service: str, keyword_dict: dict) -> str:
 def remove_false_name_rows(df):
     """ Удаляет из DataFrame строки с пустым полем 'Наименование' """
     return df[df['наименование'].apply(bool)]
+
+
+def remove_stopwords(df):
+    """ Удаляет из DataFrame строки, содержащие в 'Наименовании' стоп-слова """
+
+    # Создаем регулярное выражение из списка стопа-слов
+    pattern = '|'.join(STOPWORDS)
+    # Убираем строки, содержащие хотя бы одно стоп слово
+    df = df.copy()
+    return df[~df['наименование'].str.contains(pattern, case=False, na=True)]
 
 
 # ---------------------------------------------------------------------------------------------------------------- other
